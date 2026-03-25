@@ -1,0 +1,384 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -32
+      ],
+      "id": "c696d882-6e92-42f2-82a5-d3b351cf8725",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "854d2945-dd8c-4b51-9d15-d1b1caa0f06c",
+              "name": "topic",
+              "value": "2025 AI 醫療趨勢",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -368,
+        -32
+      ],
+      "id": "408ce939-c7b5-44ad-b274-9703662c480a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.topic }}"
+            },
+            {
+              "content": "=### System Role\n你是一位資深的數位內容策略師。你的職責是規劃出邏輯嚴謹的文章大綱。\n你只負責產出「大綱」，絕對不要撰寫完整的文章內容。\n\n### User Task\n請針對以下主題規劃專業大綱：\n{{ $('Edit Fields').item.json.topic }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        -32
+      ],
+      "id": "b5cdfa0a-fd73-4bf2-99d2-0164f5688d26",
+      "name": "內容規劃師",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "aj9E4s93E4GMebYA",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.content.parts[0].text }}"
+            },
+            {
+              "content": "=### System Role\n你是一位科技專欄作家。請根據大綱撰寫一篇深度繁體中文文章。\n嚴禁輸出 HTML 標籤。\n\n### User Task\n根據此大綱撰寫：\n{{ $json.content.parts[0].text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        -32
+      ],
+      "id": "e96cc617-bfca-4c60-b4b9-817f2baafc02",
+      "name": "專業科技作家",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "aj9E4s93E4GMebYA",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "43d85da7-bce9-408c-8287-0da44a827db9",
+              "leftValue": "={{ $json.content.parts[0].text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        -32
+      ],
+      "id": "273fa0fe-e78a-43d9-84ef-cbc85efe893f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        752,
+        64
+      ],
+      "id": "2636418f-451f-4255-b441-9381b84c717c",
+      "name": "Wait",
+      "webhookId": "d813f586-d36f-4ef7-a1fb-05fd24eb3b66"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.content.parts[0].text }}"
+            },
+            {
+              "content": "=### System Role\n你是一位網頁排版工程師。將文章轉為 HTML 網頁代碼。\n- 背景：米色 (#f9f7f2)；卡片：白色 (#ffffff)。\n- ⚠️ 絕對禁令：只輸出以 <html> 開頭的代碼，不准重複指令，不准說廢話。\n\n### 文章內容\n{{ $json.content.parts[0].text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        752,
+        -128
+      ],
+      "id": "7a38ddf2-3654-4521-a0f6-0d06f44affc2",
+      "name": "社群媒體編輯",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "aj9E4s93E4GMebYA",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * n8n Code Node - 終極精確提取邏輯 (V7)\n * * 核心功能：\n * 1. 物理過濾：自動尋找 ```html ... ``` 代碼塊或 <html>...</html> 區間。\n * 2. 攔截廢話：即便 AI 重複了指令，這段程式碼也會跳過廢話，只抓取真正的網頁代碼。\n * 3. 雙變數支援：產出 emailBody (供 Gmail) 與 final_text (供 Google Drive)。\n */\n\n// 1. 取得前一個節點傳來的 JSON 資料\nconst item = $input.first().json;\n\n// 2. 提取原始文字 (嘗試從 Gemini 常見的幾種輸出路徑抓取)\nlet rawText = (item.content && item.content.parts && item.content.parts[0].text) \n              || item.text \n              || item.output \n              || \"\";\n\nlet cleanHtml = \"\";\n\n// 3. 策略 A：優先尋找被 Markdown 語法 ```html ... ``` 包住的內容\nconst markdownRegex = /```html\\s*([\\s\\S]*?)\\s*```/i;\nconst markdownMatch = rawText.match(markdownRegex);\n\nif (markdownMatch && markdownMatch[1]) {\n    // 成功找到代碼塊，這是最理想的情況\n    cleanHtml = markdownMatch[1].trim();\n} else {\n    // 策略 B：若無代碼塊，尋找 <html> 標籤的區間\n    const lowerText = rawText.toLowerCase();\n    \n    // 找第一個出現的 <html (通常是代碼開始)\n    let htmlStart = lowerText.indexOf('<html');\n    // 找最後一個出現的 </html> (通常是代碼結束)\n    let htmlEnd = lowerText.lastIndexOf('</html>');\n\n    // 💡 防呆檢查：如果抓到的 HTML 區段太短 (例如小於 200 字)，很可能是 AI 在複誦指令\n    // 這時我們嘗試跳過開頭，往後找真正的 <html> 起點\n    if (htmlStart !== -1 && htmlStart < 300 && rawText.includes('<html>', htmlStart + 1)) {\n        const nextStart = lowerText.indexOf('<html', htmlStart + 1);\n        if (nextStart !== -1) htmlStart = nextStart;\n    }\n\n    if (htmlStart !== -1 && htmlEnd !== -1 && htmlEnd > htmlStart) {\n        // 成功定位：擷取從 <html 到 </html> 的純淨內容\n        cleanHtml = rawText.substring(htmlStart, htmlEnd + 7).trim();\n    } else {\n        // 策略 C：若連標籤都沒有，則將 Markdown 符號移除後作為輸出\n        cleanHtml = rawText.replace(/```html|```|`/gi, \"\").trim();\n    }\n}\n\n// 4. 安全檢查：如果最後結果長度太短或長得不像 HTML，則輸出預防性報錯網頁\nif (cleanHtml.length < 100 || cleanHtml.includes(\"</html> 結束的完整\")) {\n    cleanHtml = `\n      <div style=\"font-family: sans-serif; padding: 20px; border: 2px solid #e74c3c; border-radius: 8px; background: #fff;\">\n        <h2 style=\"color: #e74c3c;\">⚠️ AI 輸出異常 (已自動攔截鸚鵡學舌)</h2>\n        <p>AI 本次未正確產出網頁代碼，僅重複了指令內容。這通常發生在預覽版模型 (2.5-flash) 邏輯混亂時。</p>\n        <hr style=\"border:0; border-top: 1px solid #eee;\">\n        <p style=\"font-size: 12px; color: #666;\">原始輸出片段預覽：${rawText.substring(0, 300)}...</p>\n      </div>\n    `;\n}\n\n// 5. 回傳整理後的結果\nreturn [\n  {\n    json: {\n      ...item,                // 保留 topic 等原始資料 (讓 Gmail 主旨可以引用)\n      emailBody: cleanHtml,   // 🔥 給 Gmail Message 欄位使用的純淨變數\n      final_text: cleanHtml   // 🔥 給 Google Drive File Content 使用的變數\n    },\n    // 同時產出二進位檔案，供 Google Drive「Upload」模式使用 (若需要)\n    binary: {\n      data: {\n        data: Buffer.from(cleanHtml).toString('base64'),\n        mimeType: 'text/html',\n        fileExtension: 'html',\n        fileName: 'AI_Daily_News.html'\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        -128
+      ],
+      "id": "a8296be3-ec59-4f1d-86f8-c12982bef24e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "wilson090430@gmail.com",
+        "subject": "=【AI 自動化產出】{{ $('Edit Fields').item.json.topic }}",
+        "message": "={{ $json.emailBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1328,
+        16
+      ],
+      "id": "6b0a3cc5-1017-4e7d-ba62-3dd4877985e7",
+      "name": "Send a message",
+      "webhookId": "3e315612-f8c5-468d-90ab-0500806e8cc0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oOvO9Vh4IPbd0MFH",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.final_text }}",
+        "name": "=【AI 專題產出】{{ $('Edit Fields').item.json.topic }}.html",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1328,
+        -256
+      ],
+      "id": "3cccbeaf-4c6a-43ac-9591-2611f03bd578",
+      "name": "Create file from text",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "hiXiHPOBUZxMeFI3",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "內容規劃師",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "內容規劃師": {
+      "main": [
+        [
+          {
+            "node": "專業科技作家",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "專業科技作家": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "社群媒體編輯",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "專業科技作家",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "社群媒體編輯": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create file from text",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create file from text": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5e49c721-21f4-458b-9e8d-0958089789fd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "08120e19f5f43cd90933c9e603b0f2ac92972baf38c8b7375c7ad7ad171ceef6"
+  },
+  "id": "vhrtjuqj7jKXafur",
+  "tags": []
+}
