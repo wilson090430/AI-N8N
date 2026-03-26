@@ -64,12 +64,7 @@
       ],
       "id": "b5cdfa0a-fd73-4bf2-99d2-0164f5688d26",
       "name": "內容規劃師",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "aj9E4s93E4GMebYA",
-          "name": "Google Gemini(PaLM) Api account 2"
-        }
-      }
+      "credentials": {}
     },
     {
       "parameters": {
@@ -101,10 +96,7 @@
       "id": "e96cc617-bfca-4c60-b4b9-817f2baafc02",
       "name": "專業科技作家",
       "credentials": {
-        "googlePalmApi": {
-          "id": "aj9E4s93E4GMebYA",
-          "name": "Google Gemini(PaLM) Api account 2"
-        }
+        "googlePalmApi": {}
       }
     },
     {
@@ -184,11 +176,7 @@
       ],
       "id": "7a38ddf2-3654-4521-a0f6-0d06f44affc2",
       "name": "社群媒體編輯",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "aj9E4s93E4GMebYA",
-          "name": "Google Gemini(PaLM) Api account 2"
-        }
+      "credentials": {}
       }
     },
     {
