@@ -1,0 +1,375 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        -16
+      ],
+      "id": "3bdfe225-577b-4fb5-992d-221aac4657cc",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b8d2f06d-e981-450b-8cdb-827b530091b0",
+              "name": "topic",
+              "value": "2026 AI 醫療趨勢",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        -16
+      ],
+      "id": "a700e948-a1e5-4920-8b38-857db3015963",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "099f7ab2-a1cd-48b7-9d7b-acac8735d64e",
+              "leftValue": "=={{ $json.content.parts[0].text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        752,
+        -16
+      ],
+      "id": "14009113-fedf-4194-b8ea-aa688df8f3b3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        944,
+        96
+      ],
+      "id": "4370ed68-b83f-478a-a4bd-0347e8cfb595",
+      "name": "Wait",
+      "webhookId": "82ef0cd0-f724-454c-8406-d01a67c8c4ca"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nlet rawText = (item.content && item.content.parts && item.content.parts[0].text) || item.text || \"\";\nlet cleanHtml = \"\";\nconst markdownRegex = /```html\\s*([\\s\\S]*?)\\s*```/i;\nconst markdownMatch = rawText.match(markdownRegex);\n\nif (markdownMatch && markdownMatch[1]) {\n    cleanHtml = markdownMatch[1].trim();\n} else {\n    const lowerText = rawText.toLowerCase();\n    let htmlStart = lowerText.indexOf('<html');\n    let htmlEnd = lowerText.lastIndexOf('</html>');\n    if (htmlStart !== -1 && htmlEnd !== -1) {\n        cleanHtml = rawText.substring(htmlStart, htmlEnd + 7).trim();\n    } else {\n        cleanHtml = rawText.replace(/```html|```|`/gi, \"\").trim();\n    }\n}\n\nreturn [\n  {\n    json: {\n      ...item,\n      emailBody: cleanHtml,\n      final_text: cleanHtml\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        -32
+      ],
+      "id": "7745b3f9-6452-4a64-8324-0ed485e8b975",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "=={{ $json.final_text }}",
+        "name": "=【AI 專題產出】{{ $('Edit Fields').item.json.topic }}.html",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1664,
+        -112
+      ],
+      "id": "34b3f75f-8f0d-4970-ad13-bb273d40f88c",
+      "name": "Create file from text",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "tRde0UDvC1Huj30x",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "wilson090430@gmail.com",
+        "subject": "={{ $('Edit Fields').item.json.topic }}",
+        "message": "=={{ $json.emailBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1664,
+        96
+      ],
+      "id": "7ad58cc2-3e00-4e29-8bb2-ec5b65d8fee7",
+      "name": "Send a message",
+      "webhookId": "6df64d59-e6a8-4611-bb3d-209783edd6e2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2Hjk1B7QBBGH7OwL",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "==### System Role\n你是一位資深的數位內容策略師。你的職責是規劃出邏輯嚴謹的文章大綱。\n你只負責產出「大綱」，絕對不要撰寫完整的文章內容。\n\n### User Task\n請針對以下主題規劃專業大綱：\n{{ $('Edit Fields').item.json.topic }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        -16
+      ],
+      "id": "af9dc19c-0143-48df-900c-e48dac5ef4df",
+      "name": "內容規劃師",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "tPAPDNReud9mh3iu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "==### System Role\n你是一位科技專欄作家。請根據大綱撰寫一篇深度繁體中文文章。\n嚴禁輸出 HTML 標籤。\n\n### User Task\n根據此大綱撰寫：\n{{ $json.content.parts[0].text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        -16
+      ],
+      "id": "5ff2b4d8-cfdf-4b73-a561-d70f813201bf",
+      "name": "專業科技作家",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "tPAPDNReud9mh3iu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "==### System Role\n你是一位網頁排版工程師。將文章轉為 HTML 網頁代碼。\n- 背景：米色 (#f9f7f2)；卡片：白色 (#ffffff)。\n- ⚠️ 絕對禁令：只輸出以 <html> 開頭的代碼，不准重複指令，不准說廢話。\n\n### 文章內容\n{{ $json.content.parts[0].text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1104,
+        -32
+      ],
+      "id": "e9087cd3-0624-4266-904f-0dcf47f932e0",
+      "name": "社群媒體編輯",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "tPAPDNReud9mh3iu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "內容規劃師",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "社群媒體編輯",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "專業科技作家",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create file from text",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create file from text": {
+      "main": [
+        []
+      ]
+    },
+    "內容規劃師": {
+      "main": [
+        [
+          {
+            "node": "專業科技作家",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "專業科技作家": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "社群媒體編輯": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "30c86ea6-c90e-4147-93ad-7381e0d6306a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "723a194290cef721db018af2d8efd8bac43317931d59a5e218c6961de2b70b4d"
+  },
+  "id": "PPnQkOTvGzPvUItB",
+  "tags": []
+}
